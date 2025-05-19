@@ -5,7 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Line
 
 from agregar import agregar_contacto
 from eliminar import eliminar_contacto
@@ -36,7 +36,6 @@ class ContactosApp(BoxLayout):
         self.nombre = TextInput(hint_text='Nombre', **input_style)
         self.correo = TextInput(hint_text='Correo', **input_style)
         self.telefono = TextInput(hint_text='Teléfono', **input_style)
-        
 
         self.add_widget(self.nombre)
         self.add_widget(self.correo)
@@ -56,7 +55,7 @@ class ContactosApp(BoxLayout):
         for texto, funcion in acciones:
             btn = Button(
                 text=texto,
-                background_normal='',  # <--- esto activa el color de fondo personalizado
+                background_normal='',
                 background_color=color_boton,
                 color=(0.2, 0.2, 0.2, 1),
                 font_size=14
@@ -108,21 +107,36 @@ class ContactosApp(BoxLayout):
         if not contactos:
             self.mostrar_mensaje("No hay contactos.")
         else:
-            tabla = GridLayout(cols=3, spacing=10, size_hint_y=None)
+            tabla = GridLayout(cols=3, spacing=2, size_hint_y=None, padding=4)
             tabla.bind(minimum_height=tabla.setter('height'))
 
             # Encabezados
             encabezados = ['Nombre', 'Correo', 'Teléfono']
             for h in encabezados:
                 lbl = Label(text=f'[b]{h}[/b]', markup=True, size_hint_y=None, height=30, color=(0.1, 0.1, 0.4, 1))
+                self._agregar_borde(lbl)
                 tabla.add_widget(lbl)
 
             for c in contactos:
-                tabla.add_widget(Label(text=c['nombre'], size_hint_y=None, height=30, color=(0.2, 0.2, 0.2, 1)))
-                tabla.add_widget(Label(text=c['correo'], size_hint_y=None, height=30, color=(0.2, 0.2, 0.2, 1)))
-                tabla.add_widget(Label(text=c['telefono'], size_hint_y=None, height=30, color=(0.2, 0.2, 0.2, 1)))
+                datos = [c['nombre'], c['correo'], c['telefono']]
+                for d in datos:
+                    lbl = Label(text=d, size_hint_y=None, height=30, color=(0.2, 0.2, 0.2, 1))
+                    self._agregar_borde(lbl)
+                    tabla.add_widget(lbl)
 
             self.resultado_layout.add_widget(tabla)
+
+    def _agregar_borde(self, widget):
+        with widget.canvas.after:
+            Color(0.6, 0.6, 0.6, 1)
+            Line(rectangle=(widget.x, widget.y, widget.width, widget.height), width=1)
+        widget.bind(pos=self._redibujar_borde, size=self._redibujar_borde)
+
+    def _redibujar_borde(self, widget, *args):
+        widget.canvas.after.clear()
+        with widget.canvas.after:
+            Color(0.6, 0.6, 0.6, 1)
+            Line(rectangle=(widget.x, widget.y, widget.width, widget.height), width=1)
 
     def mostrar_mensaje(self, mensaje):
         self.resultado_layout.clear_widgets()
@@ -143,4 +157,3 @@ class MiApp(App):
 
 if __name__ == '__main__':
     MiApp().run()
-
